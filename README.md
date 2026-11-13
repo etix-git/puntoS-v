@@ -58,6 +58,10 @@ global HK_TRANSLIT := "^!+Ins" ; Ctrl+Alt+Shift+Ins
 
 Короткий однострочный текст печатается напрямую, без буфера обмена. Длинный или многострочный вставляется через буфер (при печати перевод строки стал бы нажатием Enter, а в чатах Enter отправляет сообщение), после чего прежнее содержимое буфера восстанавливается. Временные данные помечаются так, чтобы не попадать в журнал Win+V и облачный буфер.
 
+## Лицензия
+
+[MIT](#license) © 2026 etix — полный текст в конце файла.
+
 ---
 
 <a id="english"></a>
@@ -119,3 +123,29 @@ After editing, choose «Перезапустить» (Reload) in the tray icon m
 ### Clipboard
 
 Short single-line text is typed directly, without touching the clipboard. Longer or multi-line text is pasted via the clipboard (typing a line break would press Enter, which sends the message in chat inputs), and the previous clipboard contents are restored afterwards. Temporary data is flagged so it stays out of Win+V history and cloud clipboard.
+
+<a id="license"></a>
+
+### License
+
+MIT License
+
+Copyright (c) 2026 etix
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
