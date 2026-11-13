@@ -27,9 +27,11 @@
 | `Alt+Shift+Ins` | Инвертировать регистр: `пРИВЕТ` → `Привет`                   |
 | `Win+Alt+U`     | ВСЁ В ЗАГЛАВНЫЕ                                              |
 | `Win+Alt+L`     | всё в строчные                                               |
+| `Ctrl+Alt+Shift+Ins` | Транслитерация в латиницу: `Щука и ёжик` → `Shchuka i yozhik` |
 
 Если выделить результат и нажать то же сочетание ещё раз, смена раскладки или инверсия регистра отменится.
 Направление (RU → EN или EN → RU) определяется автоматически по преобладающим буквам.
+Текст, набранный с включённым Caps Lock, тоже исправляется: `GHJLJK;FQ` → `ПРОДОЛЖАЙ`.
 
 ## Настройка
 
@@ -40,6 +42,7 @@ global HK_LAYOUT := "!Ins"     ; Alt+Ins
 global HK_INVERT := "!+Ins"    ; Alt+Shift+Ins
 global HK_LOWER  := "#!vk4C"   ; Win+Alt+L
 global HK_UPPER  := "#!vk55"   ; Win+Alt+U
+global HK_TRANSLIT := "^!+Ins" ; Ctrl+Alt+Shift+Ins
 ```
 
 - Модификаторы: `!` — Alt, `+` — Shift, `^` — Ctrl, `#` — Win.
@@ -86,9 +89,11 @@ They work on selected text in any application.
 | `Alt+Shift+Ins` | Invert case: `hELLO` → `Hello`                               |
 | `Win+Alt+U`     | ALL UPPERCASE                                                |
 | `Win+Alt+L`     | all lowercase                                                |
+| `Ctrl+Alt+Shift+Ins` | Transliterate Russian to Latin: `Щука и ёжик` → `Shchuka i yozhik` |
 
 Select the result and press the same hotkey again to undo a layout conversion or case inversion.
 The direction (RU → EN or EN → RU) is detected automatically from the prevailing letters.
+Text typed with Caps Lock on is fixed too: `GHJLJK;FQ` → `ПРОДОЛЖАЙ`.
 
 ### Configuration
 
@@ -99,6 +104,7 @@ global HK_LAYOUT := "!Ins"     ; Alt+Ins
 global HK_INVERT := "!+Ins"    ; Alt+Shift+Ins
 global HK_LOWER  := "#!vk4C"   ; Win+Alt+L
 global HK_UPPER  := "#!vk55"   ; Win+Alt+U
+global HK_TRANSLIT := "^!+Ins" ; Ctrl+Alt+Shift+Ins
 ```
 
 - Modifiers: `!` Alt, `+` Shift, `^` Ctrl, `#` Win.

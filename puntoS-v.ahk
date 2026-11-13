@@ -14,6 +14,7 @@ global HK_INVERT := "!+Ins"    ; инвертировать регистр      
 ; Буквы задаются виртуальным кодом (vkXX) — так хоткей работает в любой раскладке.
 global HK_LOWER  := "#!vk4C"   ; всё в строчные                  (Win+Alt+L / Д)
 global HK_UPPER  := "#!vk55"   ; всё в заглавные                 (Win+Alt+U / Г)
+global HK_TRANSLIT := "^!+Ins" ; транслитерация RU -> Latin      (Ctrl+Alt+Shift+Ins)
 
 ; Порог длины: короче — набираем через SendText (буфер не трогаем),
 ; длиннее — вставляем через буфер с резервированием (быстрее).
@@ -62,7 +63,8 @@ global Actions := [
     {hk: HK_LAYOUT, name: "Раскладка RU ↔ EN",      fn: (*) => ProcessSelection(LayoutAction, SwitchLayoutAfter)},
     {hk: HK_INVERT, name: "Инвертировать регистр",  fn: (*) => ProcessSelection(InvertCase)},
     {hk: HK_LOWER,  name: "Всё в строчные",         fn: (*) => ProcessSelection(StrLower)},
-    {hk: HK_UPPER,  name: "Всё в заглавные",        fn: (*) => ProcessSelection(StrUpper)}
+    {hk: HK_UPPER,  name: "Всё в заглавные",        fn: (*) => ProcessSelection(StrUpper)},
+    {hk: HK_TRANSLIT, name: "Транслитерация RU → Latin", fn: (*) => ProcessSelection(Translit)}
 ]
 
 RegisterHotkeys()
@@ -200,20 +202,86 @@ InvertCase(text) {
 ; ---------------------------------------------------------------------------
 ; Преобразование
 ; ---------------------------------------------------------------------------
-global LastOut := "", LastDir := ""
+global LastIn := "", LastOut := "", LastDir := ""
 
-; Если выделен ровно предыдущий результат, разворачиваем направление:
-; повторное нажатие всегда отменяет первое, даже для фрагмента из одних знаков (";:?).
+; Если выделен ровно предыдущий результат, возвращаем исходный текст как был:
+; повторное нажатие всегда точно отменяет первое, даже для фрагмента из одних знаков (";:?).
 Transform(text, &dir) {
-    global LastOut, LastDir
-    if (LastOut != "" && text == LastOut)
+    global LastIn, LastOut, LastDir
+    if (LastOut != "" && text == LastOut) {
         dir := LastDir = "en2ru" ? "ru2en" : "en2ru"
-    else
+        out := LastIn
+    } else {
         dir := DetectDirection(text)
-    out := Convert(text, dir = "en2ru" ? En2Ru : Ru2En)
-    LastOut := out, LastDir := dir
+        out := Convert(text, dir = "en2ru" ? En2Ru : Ru2En)
+        if dir = "en2ru"
+            out := FixCapsLock(text, out)
+    }
+    LastIn := text, LastOut := out, LastDir := dir
     return out
 }
+
+; Caps Lock делает заглавными только буквы, а клавиши Ж Х Ъ Э Б Ю Ё в EN-раскладке — знаки
+; (; [ ] ' , . `), поэтому "GHJLJK;FQ" превращается в "ПРОДОЛжАЙ". Такую букву делаем заглавной,
+; если в её слове не меньше двух букв, набранных латиницей, и все они заглавные.
+; Convert заменяет символы один к одному, поэтому позиции в src и out совпадают.
+FixCapsLock(src, out) {
+    s := StrSplit(src), o := StrSplit(out), n := o.Length
+    for i, c in o {
+        if !RegExMatch(c, "^[а-яё]$") || !En2Ru.Has(s[i]) || RegExMatch(s[i], "^[a-zA-Z]$")
+            continue
+        a := i, b := i
+        while a > 1 && RegExMatch(o[a - 1], "^[а-яёА-ЯЁ]$")
+            a--
+        while b < n && RegExMatch(o[b + 1], "^[а-яёА-ЯЁ]$")
+            b++
+        anchors := 0, allUp := true
+        Loop b - a + 1 {
+            j := a + A_Index - 1
+            if !RegExMatch(s[j], "^[a-zA-Z]$")
+                continue
+            anchors++
+            if !RegExMatch(s[j], "^[A-Z]$")
+                allUp := false
+        }
+        if anchors >= 2 && allUp
+            o[i] := StrUpper(c)
+    }
+    res := ""
+    for c in o
+        res .= c
+    return res
+}
+
+; Транслитерация RU -> Latin: ж=zh, х=kh, щ=shch, ё=yo, й=y, ю=yu, я=ya, ъ и ь опускаются.
+Translit(text) {
+    static t := Map(
+        "а", "a",  "б", "b",  "в", "v",  "г", "g",  "д", "d",    "е", "e",  "ё", "yo",
+        "ж", "zh", "з", "z",  "и", "i",  "й", "y",  "к", "k",    "л", "l",  "м", "m",
+        "н", "n",  "о", "o",  "п", "p",  "р", "r",  "с", "s",    "т", "t",  "у", "u",
+        "ф", "f",  "х", "kh", "ц", "ts", "ч", "ch", "ш", "sh",   "щ", "shch",
+        "ъ", "",   "ы", "y",  "ь", "",   "э", "e",  "ю", "yu",   "я", "ya"
+    )
+    c := StrSplit(text), n := c.Length, out := ""
+    for i, ch in c {
+        lo := StrLower(ch)
+        if !t.Has(lo) {
+            out .= ch
+            continue
+        }
+        lat := t[lo]
+        if ch == lo || StrLen(lat) <= 1 {
+            out .= ch == lo ? lat : StrUpper(lat)
+            continue
+        }
+        ; Заглавная с многобуквенной заменой: ЖЕНЯ -> ZHENYA, но Жора -> Zhora.
+        ctx := (i < n && IsLetter(c[i + 1])) ? c[i + 1] : (i > 1 && IsLetter(c[i - 1])) ? c[i - 1] : ""
+        out .= (ctx != "" && ctx !== StrLower(ctx)) ? StrUpper(lat) : StrUpper(SubStr(lat, 1, 1)) SubStr(lat, 2)
+    }
+    return out
+}
+
+IsLetter(ch) => RegExMatch(ch, "^[a-zA-Zа-яёА-ЯЁ]$")
 
 Convert(text, table) {
     out := ""
